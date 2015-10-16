@@ -20,81 +20,101 @@ import java.util.UUID;
 
 public class TrackServlet extends HttpServlet {
 
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String button = request.getParameter("button");
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8323418320495108320L;
 
-    String artist =  request.getParameter("artist");
-    String track_name = request.getParameter("track_name");
-    String genre = request.getParameter("genre");
-    String music_file = request.getParameter("music_file");
+	protected void doPost(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		String button = request.getParameter("button");
 
+		String artist = request.getParameter("artist");
+		String track_name = request.getParameter("track_name");
+		String genre = request.getParameter("genre");
+		String music_file = request.getParameter("music_file");
 
+		// step2
+		String star = request.getParameter("star");
 
-    if (button != null && button.contentEquals("addTrack")) {
+		if (button != null && button.contentEquals("addTrack")) {
 
-      //
-      // Get the track_length_in_seconds and validate it's a good integer
-      //
+			// step2
+			if (star != null) {
+				TracksDAO.getTrackById(UUID.fromString(star)).star();
 
-      int track_length_in_seconds;
-      try {
-        track_length_in_seconds = Integer.parseInt(request.getParameter("track_length_in_seconds"));
-      } catch (NumberFormatException e) {
-        request.setAttribute("error", "Invalid Track Length");
-        getServletContext().getRequestDispatcher("/add_track.jsp").forward(request,response);
-        return;
-      }
+				//Step2
+//				response.sendRedirect("tracks?howmany="
+//						+ howmany
+//						+ (artist == null ? "" : "&artist="
+//								+ URLEncoder.encode(artist, "UTF-8"))
+//						+ (genre == null ? "" : "&genre="
+//								+ URLEncoder.encode(genre, "UTF-8")));
 
-      //
-      // Construct a new track object
-      //
+			}
+			//
+			// Get the track_length_in_seconds and validate it's a good integer
+			//
 
-      TracksDAO newTrack = new TracksDAO(
-              artist,
-              track_name,
-              genre,
-              music_file,
-              track_length_in_seconds
-      );
+			int track_length_in_seconds;
+			try {
+				track_length_in_seconds = Integer.parseInt(request
+						.getParameter("track_length_in_seconds"));
+			} catch (NumberFormatException e) {
+				request.setAttribute("error", "Invalid Track Length");
+				getServletContext().getRequestDispatcher("/add_track.jsp")
+						.forward(request, response);
+				return;
+			}
 
-      //
-      // Add the new track to the database
-      //
+			//
+			// Construct a new track object
+			//
 
-      newTrack.add();
+			TracksDAO newTrack = new TracksDAO(artist, track_name, genre,
+					music_file, track_length_in_seconds);
 
-      // Go to that artist to see the new track
+			//
+			// Add the new track to the database
+			//
 
-      response.sendRedirect("tracks?artist=" + URLEncoder.encode(artist, "UTF-8"));
+			newTrack.add();
 
-    }
+			// Go to that artist to see the new track
 
-  }
+			response.sendRedirect("tracks?artist="
+					+ URLEncoder.encode(artist, "UTF-8"));
 
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		}
 
-    String artist = request.getParameter("artist");
-    String genre = request.getParameter("genre");
-    String frame = request.getParameter("frame");
+	}
 
-    List<TracksDAO> tracks = null;
-    if (artist != null && !artist.isEmpty()) {
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
 
-      // Assume we're searching by artist
-      tracks = TracksDAO.listSongsByArtist(artist);
-    } else if (genre != null) {
+		String artist = request.getParameter("artist");
+		String genre = request.getParameter("genre");
+		String frame = request.getParameter("frame");
 
-      // Assume we're searching by genre
-      tracks = TracksDAO.listSongsByGenre(genre);
+		List<TracksDAO> tracks = null;
+		if (artist != null && !artist.isEmpty()) {
 
-    }
+			// Assume we're searching by artist
+			tracks = TracksDAO.listSongsByArtist(artist);
+		} else if (genre != null) {
 
-    request.setAttribute("artist", artist);
-    request.setAttribute("genre", genre);
-    request.setAttribute("tracks", tracks);
-    request.setAttribute("frame", frame);
-    getServletContext().getRequestDispatcher("/tracks.jsp").forward(request,response);
+			// Assume we're searching by genre
+			tracks = TracksDAO.listSongsByGenre(genre);
 
-  }
+		}
+
+		request.setAttribute("artist", artist);
+		request.setAttribute("genre", genre);
+		request.setAttribute("tracks", tracks);
+		request.setAttribute("frame", frame);
+		getServletContext().getRequestDispatcher("/tracks.jsp").forward(
+				request, response);
+
+	}
 
 }
